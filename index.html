@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Brands</title>
-    <style>
-        .brand-button, .model-button, .year-button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-    </style>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Car Brands</title>
+        <style>
+            .brand-button, .model-button, .year-button {
+                margin: 10px;
+                padding: 10px 20px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+        </style>
+<link rel="stylesheet" href="css/styles.css">
+    </head>
 <body>
     <h1>Car Brands</h1>
     <div id="brands-container">
@@ -103,12 +104,12 @@
 
             // Add a "Return" button
             const returnButton = document.createElement('button');
-            returnButton.textContent = 'Return';
-            returnButton.className = 'year-button';
-            returnButton.onclick = () => {
-                location.reload(); // Reload the page to reset to the initial state
-            };
-            modelsContainer.appendChild(returnButton);
+returnButton.textContent = 'Return';
+returnButton.className = 'return-button'; // Додано клас "return-button"
+returnButton.onclick = () => {
+    location.reload(); // Reload the page to reset to the initial state
+};
+modelsContainer.appendChild(returnButton);
 
             // Display images
             for (const key in carData) {
