@@ -3,16 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Page Project</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Car Brands</title>
+    <style>
+        .brand-button, .model-button, .year-button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <input type="text" id="textInput" placeholder="Enter text here">
-        <button id="submitButton">Submit</button>
-        <button id="fetchJsonButton">Fetch JSON</button> <!-- New button -->
-        <div id="outputArea"></div>
+    <h1>Car Brands</h1>
+    <div id="brands-container">
+        <!-- Buttons for car brands will be dynamically added here -->
     </div>
-    <script src="js/script.js"></script>
+
+    <div id="models-container" style="margin-top: 20px;">
+        <!-- Models and years will be displayed here -->
+    </div>
+
+    <script>
+        // Load data from sample.json
+        fetch('js/image_sources.json')
+            .then(response => response.json())
+            .then(carData => {
+                // Extract unique brands from the data
+                const brands = new Set();
+                for (const key in carData) {
+                    const brand = key.split('/')[0];
+                    brands.add(brand);
+                }
+
+                // Sort brands alphabetically
+                const sortedBrands = Array.from(brands).sort();
+
+                // Add buttons for each brand
+                const brandsContainer = document.getElementById('brands-container');
+                sortedBrands.forEach(brand => {
+                    const button = document.createElement('button');
+                    button.className = 'brand-button';
+                    button.textContent = brand;
+                    button.onclick = () => showModels(brand, carData);
+                    brandsContainer.appendChild(button);
+                });
+            });
+
+        function showModels(brand, carData) {
+            const modelsContainer = document.getElementById('models-container');
+            modelsContainer.innerHTML = `<h2>Models of ${brand}</h2>`;
+            const models = new Set();
+
+            // Extract models for the selected brand
+            for (const key in carData) {
+                const [carBrand, model] = key.split('/');
+                if (carBrand === brand) {
+                    models.add(model);
+                }
+            }
+
+            // Add buttons for each model
+            models.forEach(model => {
+                const modelButton = document.createElement('button');
+                modelButton.className = 'model-button';
+                modelButton.textContent = model;
+                modelButton.onclick = () => showYears(brand, model, carData);
+                modelsContainer.appendChild(modelButton);
+            });
+        }
+
+        function showYears(brand, model, carData) {
+            const modelsContainer = document.getElementById('models-container');
+            modelsContainer.innerHTML = `<h2>Years of ${brand} ${model}</h2>`;
+            const years = new Set();
+
+            // Extract years for the selected model
+            for (const key in carData) {
+                const [carBrand, carModel, year] = key.split('/');
+                if (carBrand === brand && carModel === model) {
+                    years.add(year);
+                }
+            }
+
+            // Sort years numerically
+            const sortedYears = Array.from(years).sort((a, b) => a - b);
+
+            // Add buttons for each year
+            sortedYears.forEach(year => {
+                const yearButton = document.createElement('button');
+                yearButton.className = 'year-button';
+                yearButton.textContent = year;
+                yearButton.onclick = () => showImages(brand, model, year, carData);
+                modelsContainer.appendChild(yearButton);
+            });
+        }
+        function showImages(brand, model, year, carData) {
+            const modelsContainer = document.getElementById('models-container');
+            modelsContainer.innerHTML = `<h2>Images of ${brand} ${model} (${year})</h2>`;
+
+            // Add a "Return" button
+            const returnButton = document.createElement('button');
+            returnButton.textContent = 'Return';
+            returnButton.className = 'year-button';
+            returnButton.onclick = () => {
+                location.reload(); // Reload the page to reset to the initial state
+            };
+            modelsContainer.appendChild(returnButton);
+
+            // Display images
+            for (const key in carData) {
+                const [carBrand, carModel, carYear] = key.split('/');
+                if (carBrand === brand && carModel === model && carYear === year) {
+                    const img = document.createElement('img');
+                    img.src = carData[key];
+                    img.style.margin = '10px';
+                    img.style.width = '200px';
+                    modelsContainer.appendChild(img);
+                }
+            }
+        }
+    </script>
 </body>
 </html>
