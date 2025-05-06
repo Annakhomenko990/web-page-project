@@ -1,6 +1,6 @@
 /* Фон сторінки */
 body {
-    background-color: #888888; 
+    background-color: #a8a8a8; 
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
@@ -8,54 +8,75 @@ body {
 
 /* Стиль для кнопок */
 button {
-    background-color: #90ee90; /* Світло-зелений колір */
+    background-color: #4fc7ff; /* Світло-зелений колір */
     border: none;
-    border-radius: 5px;
-    color: #000000; /* Білий текст */
-    font-size: 16px;
-    padding: 10px 20px;
+    border-radius: 50px;
+    color: #000000; 
+    font-size: 20px;
+    padding: 11px 20px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: background-color 0.5s ease, transform 0.5s ease;
 }
 
 /* Ефект при наведенні */
 button:hover {
-    background-color: #76c776; /* Трохи темніший зелений */
+    background-color: #ff7ae2; /* Трохи темніший зелений */
     transform: scale(1.05); /* Легке збільшення */
 }
 
 /* Ефект при натисканні */
 button:active {
-    background-color: #5ca65c; /* Темно-зелений */
+    background-color: #ff61ff; /* Темно-зелений */
     transform: scale(0.95); /* Легке зменшення */
 }
 
 /* Центрування заголовка */
 h1 {
     text-align: center;
-    color: #333; /* Темно-сірий текст */
+    color: #000000; /* Темно-сірий текст */
     margin-top: 20px;
 }
-/* Стиль для кнопки "Return" */
-button.return-button {
-    background-color: #ff4d4d; /* Червоний колір */
-    color: #ffffff; /* Білий текст */
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+/* Стиль для зображень */
+img {
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Анімація для збільшення і тіней */
+    border-radius: 10px; /* Закруглені краї */
 }
 
 /* Ефект при наведенні */
-button.return-button:hover {
-    background-color: #e60000; /* Темно-червоний */
-    transform: scale(1.05); /* Легке збільшення */
+img:hover {
+    transform: scale(1.1); /* Легке збільшення */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Тінь */
+}
+/* Накладка для модального вікна */
+.image-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Напівпрозорий чорний фон */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-/* Ефект при натисканні */
-button.return-button:active {
-    background-color: #cc0000; /* Темніший червоний */
-    transform: scale(0.95); /* Легке зменшення */
+/* Контейнер для модального вікна */
+.image-modal {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Тінь */
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Зображення у модальному вікні */
+.modal-image {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px; /* Закруглені краї */
 }
