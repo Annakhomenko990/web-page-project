@@ -45,10 +45,20 @@ function showModels(brand, carData) {
 
 function showYears(brand, model, carData) {
     const modelsContainer = document.getElementById('models-container');
+
+    // Очищаємо попередній вміст контейнера для років
+    const existingYearsContainer = document.getElementById('years-container');
+    if (existingYearsContainer) {
+        existingYearsContainer.remove();
+    }
+
+    // Створюємо новий контейнер для років
     const yearsContainer = document.createElement('div');
+    yearsContainer.id = 'years-container'; // Додаємо ID для контейнера
     yearsContainer.innerHTML = `<h3>Years of ${brand} ${model}</h3>`;
     const years = new Set();
 
+    // Витягуємо роки для вибраної моделі
     for (const key in carData) {
         const [carBrand, carModel, year] = key.split('/');
         if (carBrand === brand && carModel === model) {
@@ -56,8 +66,10 @@ function showYears(brand, model, carData) {
         }
     }
 
+    // Сортуємо роки
     const sortedYears = Array.from(years).sort((a, b) => a - b);
 
+    // Додаємо кнопки для кожного року
     sortedYears.forEach(year => {
         const yearButton = document.createElement('button');
         yearButton.className = 'year-button';
@@ -75,6 +87,8 @@ function showImages(brand, model, year, carData) {
     imagesContainer.innerHTML = `<h3>Images of ${brand} ${model} (${year})</h3>`;
 
     let imagesFound = false;
+    const images = []; // Масив для зберігання всіх зображень
+
     for (const key in carData) {
         const [carBrand, carModel, carYear] = key.split('/');
         if (carBrand === brand && carModel === model && carYear === year) {
@@ -82,16 +96,22 @@ function showImages(brand, model, year, carData) {
             img.src = carData[key];
             img.style.margin = '10px';
             img.style.width = '200px';
-            img.style.height = '100px';
+            img.style.height = '150px';
             img.style.objectFit = 'cover';
+
+            // Перевірка розміру зображення перед додаванням
             img.onload = () => {
-                if (img.naturalWidth === 1 && img.naturalHeight === 1) {
-                    img.style.display = 'none';
+                if (img.naturalWidth > 10 && img.naturalHeight > 10) {
+                    images.push(carData[key]); // Додаємо URL зображення до масиву
+                    img.onclick = () => openImageInModal(img.src, images); // Передаємо масив зображень
+                    imagesContainer.appendChild(img);
+                    imagesFound = true;
                 }
             };
-            img.onerror = () => img.style.display = 'none';
-            imagesContainer.appendChild(img);
-            imagesFound = true;
+
+            img.onerror = () => {
+                console.warn(`Image failed to load: ${carData[key]}`);
+            };
         }
     }
 
@@ -103,62 +123,49 @@ function showImages(brand, model, year, carData) {
 
     modelsContainer.appendChild(imagesContainer);
 }
-function openImageInModal(src) {
-    // Create overlay
+
+function openImageInModal(src, images) {
+    let currentIndex = images.indexOf(src);
+
+    // Створюємо накладку
     const overlay = document.createElement('div');
     overlay.className = 'image-overlay';
-    overlay.onclick = () => overlay.remove(); // Close on clicking the background
+    overlay.onclick = () => overlay.remove(); // Закриття при натисканні на фон
 
-    // Create modal container
+    // Створюємо контейнер для модального вікна
     const modal = document.createElement('div');
     modal.className = 'image-modal';
 
-    // Create image element
+    // Створюємо зображення
     const fullImage = document.createElement('img');
     fullImage.src = src;
     fullImage.className = 'modal-image';
 
-    // Append image to modal
+    // Створюємо кнопки для навігації
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Previous';
+    prevButton.className = 'modal-nav-button';
+    prevButton.onclick = (e) => {
+        e.stopPropagation(); // Запобігаємо закриттю модального вікна
+        currentIndex = (currentIndex - 1 + images.length) % images.length; // Перехід до попереднього зображення
+        fullImage.src = images[currentIndex];
+    };
+
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Next';
+    nextButton.className = 'modal-nav-button';
+    nextButton.onclick = (e) => {
+        e.stopPropagation(); // Запобігаємо закриттю модального вікна
+        currentIndex = (currentIndex + 1) % images.length; // Перехід до наступного зображення
+        fullImage.src = images[currentIndex];
+    };
+
+    // Додаємо елементи до модального вікна
+    modal.appendChild(prevButton);
     modal.appendChild(fullImage);
+    modal.appendChild(nextButton);
     overlay.appendChild(modal);
 
-    // Append overlay to body
+    // Додаємо накладку до тіла сторінки
     document.body.appendChild(overlay);
-}
-
-// Modify showImages function to enable image click to open modal
-function showImages(brand, model, year, carData) {
-    const modelsContainer = document.getElementById('models-container');
-    const imagesContainer = document.createElement('div');
-    imagesContainer.innerHTML = `<h3>Images of ${brand} ${model} (${year})</h3>`;
-
-    let imagesFound = false;
-    for (const key in carData) {
-        const [carBrand, carModel, carYear] = key.split('/');
-        if (carBrand === brand && carModel === model && carYear === year) {
-            const img = document.createElement('img');
-            img.src = carData[key];
-            img.style.margin = '10px';
-            img.style.width = '200px';
-            img.style.height = '100px';
-            img.style.objectFit = 'cover';
-            img.onclick = () => openImageInModal(img.src); // Open image in modal on click
-            img.onload = () => {
-                if (img.naturalWidth === 1 && img.naturalHeight === 1) {
-                    img.style.display = 'none';
-                }
-            };
-            img.onerror = () => img.style.display = 'none';
-            imagesContainer.appendChild(img);
-            imagesFound = true;
-        }
-    }
-
-    if (!imagesFound) {
-        const message = document.createElement('p');
-        message.textContent = 'No images found for this selection.';
-        imagesContainer.appendChild(message);
-    }
-
-    modelsContainer.appendChild(imagesContainer);
 }
