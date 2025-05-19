@@ -13,6 +13,7 @@ fetch('js/image_sources.json')
 
         const sortedBrands = Array.from(brands).sort();
         const brandsContainer = document.getElementById('brands-container');
+        brandsContainer.innerHTML = '';
         sortedBrands.forEach(brand => {
             const button = document.createElement('button');
             button.className = 'brand-button';
@@ -20,11 +21,17 @@ fetch('js/image_sources.json')
             button.onclick = () => showModels(brand, carData);
             brandsContainer.appendChild(button);
         });
+        // Очищаємо інші колонки
+        document.getElementById('models-container').innerHTML = '';
+        document.getElementById('years-container').innerHTML = '';
+        document.getElementById('images-container').innerHTML = '';
     });
 
 function showModels(brand, carData) {
     const modelsContainer = document.getElementById('models-container');
-    modelsContainer.innerHTML = `<h2>Models of ${brand}</h2>`;
+    modelsContainer.innerHTML = '';
+    const yearsContainer = document.getElementById('years-container');
+    yearsContainer.innerHTML = '';
     const models = new Set();
 
     for (const key in carData) {
@@ -34,31 +41,22 @@ function showModels(brand, carData) {
         }
     }
 
-    models.forEach(model => {
+    Array.from(models).sort().forEach(model => {
         const modelButton = document.createElement('button');
         modelButton.className = 'model-button';
         modelButton.textContent = model;
         modelButton.onclick = () => showYears(brand, model, carData);
         modelsContainer.appendChild(modelButton);
     });
+
+    document.getElementById('images-container').innerHTML = '';
 }
 
 function showYears(brand, model, carData) {
-    const modelsContainer = document.getElementById('models-container');
-
-    // Очищаємо попередній вміст контейнера для років
-    const existingYearsContainer = document.getElementById('years-container');
-    if (existingYearsContainer) {
-        existingYearsContainer.remove();
-    }
-
-    // Створюємо новий контейнер для років
-    const yearsContainer = document.createElement('div');
-    yearsContainer.id = 'years-container'; // Додаємо ID для контейнера
-    yearsContainer.innerHTML = `<h3>Years of ${brand} ${model}</h3>`;
+    const yearsContainer = document.getElementById('years-container');
+    yearsContainer.innerHTML = '';
     const years = new Set();
 
-    // Витягуємо роки для вибраної моделі
     for (const key in carData) {
         const [carBrand, carModel, year] = key.split('/');
         if (carBrand === brand && carModel === model) {
@@ -66,11 +64,7 @@ function showYears(brand, model, carData) {
         }
     }
 
-    // Сортуємо роки
-    const sortedYears = Array.from(years).sort((a, b) => a - b);
-
-    // Додаємо кнопки для кожного року
-    sortedYears.forEach(year => {
+    Array.from(years).sort((a, b) => a - b).forEach(year => {
         const yearButton = document.createElement('button');
         yearButton.className = 'year-button';
         yearButton.textContent = year;
@@ -78,94 +72,150 @@ function showYears(brand, model, carData) {
         yearsContainer.appendChild(yearButton);
     });
 
-    modelsContainer.appendChild(yearsContainer);
+    document.getElementById('images-container').innerHTML = '';
 }
 
 function showImages(brand, model, year, carData) {
-    const modelsContainer = document.getElementById('models-container');
-    const imagesContainer = document.createElement('div');
-    imagesContainer.innerHTML = `<h3>Images of ${brand} ${model} (${year})</h3>`;
+    const imagesContainer = document.getElementById('images-container');
+    imagesContainer.innerHTML = '';
 
-    let imagesFound = false;
-    const images = []; // Масив для зберігання всіх зображень
+    // Додаємо спінер
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    document.body.appendChild(spinner);
 
-    for (const key in carData) {
-        const [carBrand, carModel, carYear] = key.split('/');
-        if (carBrand === brand && carModel === model && carYear === year) {
-            const img = document.createElement('img');
-            img.src = carData[key];
-            img.style.margin = '10px';
-            img.style.width = '200px';
-            img.style.height = '150px';
-            img.style.objectFit = 'cover';
+    setTimeout(() => {
+        spinner.remove();
 
-            // Перевірка розміру зображення перед додаванням
-            img.onload = () => {
-                if (img.naturalWidth > 10 && img.naturalHeight > 10) {
-                    images.push(carData[key]); // Додаємо URL зображення до масиву
-                    img.onclick = () => openImageInModal(img.src, images); // Передаємо масив зображень
-                    imagesContainer.appendChild(img);
-                    imagesFound = true;
-                }
-            };
-
-            img.onerror = () => {
-                console.warn(`Image failed to load: ${carData[key]}`);
-            };
+        // Збираємо всі зображення для вибраного року
+        const allImages = [];
+        for (const key in carData) {
+            const [carBrand, carModel, carYear] = key.split('/');
+            if (carBrand === brand && carModel === model && carYear === year) {
+                allImages.push(carData[key]);
+            }
         }
-    }
 
-    if (!imagesFound) {
-        const message = document.createElement('p');
-        message.textContent = 'No images found for this selection.';
-        imagesContainer.appendChild(message);
-    }
+        let currentPage = 0;
+        const imagesPerPage = 9;
 
-    modelsContainer.appendChild(imagesContainer);
+        function filterValidImages(imageUrls, callback) {
+            const validImages = [];
+            let checked = 0;
+            if (imageUrls.length === 0) callback([]);
+            imageUrls.forEach(src => {
+                const img = new window.Image();
+                img.src = src;
+                img.onload = function() {
+                    if (img.naturalWidth >= 10 && img.naturalHeight >= 10) {
+                        validImages.push(src);
+                    }
+                    checked++;
+                    if (checked === imageUrls.length) {
+                        callback(validImages);
+                    }
+                };
+                img.onerror = function() {
+                    checked++;
+                    if (checked === imageUrls.length) {
+                        callback(validImages);
+                    }
+                };
+            });
+        }
+
+        function renderPage(validImages) {
+            imagesContainer.innerHTML = '';
+            const start = currentPage * imagesPerPage;
+            const end = start + imagesPerPage;
+            const pageImages = validImages.slice(start, end);
+
+            pageImages.forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.style.margin = '10px';
+                img.style.width = '200px';
+                img.style.height = '150px';
+                img.style.objectFit = 'cover';
+                img.onclick = () => openImageInModal(img.src, validImages);
+                imagesContainer.appendChild(img);
+            });
+
+            // Кнопки пагінації
+            const pagination = document.createElement('div');
+            pagination.style.textAlign = 'center';
+            pagination.style.marginTop = '20px';
+
+            if (currentPage > 0) {
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = 'Previous';
+                prevBtn.onclick = () => {
+                    currentPage--;
+                    renderPage(validImages);
+                };
+                pagination.appendChild(prevBtn);
+            }
+
+            if (end < validImages.length) {
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Next';
+                nextBtn.style.marginLeft = '10px';
+                nextBtn.onclick = () => {
+                    currentPage++;
+                    renderPage(validImages);
+                };
+                pagination.appendChild(nextBtn);
+            }
+
+            if (pagination.children.length > 0) {
+                imagesContainer.appendChild(pagination);
+            }
+        }
+
+        filterValidImages(allImages, renderPage);
+    }, 3000);
 }
 
 function openImageInModal(src, images) {
-    let currentIndex = images.indexOf(src);
+    // Видаляємо попередній оверлей, якщо він є
+    const oldOverlay = document.querySelector('.image-overlay');
+    if (oldOverlay) oldOverlay.remove();
 
-    // Створюємо накладку
+    // Створюємо оверлей
     const overlay = document.createElement('div');
     overlay.className = 'image-overlay';
-    overlay.onclick = () => overlay.remove(); // Закриття при натисканні на фон
 
     // Створюємо контейнер для модального вікна
     const modal = document.createElement('div');
     modal.className = 'image-modal';
 
     // Створюємо зображення
-    const fullImage = document.createElement('img');
-    fullImage.src = src;
-    fullImage.className = 'modal-image';
+    const modalImg = document.createElement('img');
+    modalImg.className = 'modal-image';
+    modalImg.src = src;
 
-    // Створюємо кнопки для навігації
-    const prevButton = document.createElement('button');
-    prevButton.textContent = 'Previous';
-    prevButton.className = 'modal-nav-button';
-    prevButton.onclick = (e) => {
-        e.stopPropagation(); // Запобігаємо закриттю модального вікна
-        currentIndex = (currentIndex - 1 + images.length) % images.length; // Перехід до попереднього зображення
-        fullImage.src = images[currentIndex];
+    // Додаємо зображення в модал
+    modal.appendChild(modalImg);
+
+    // БЕЗ кнопок навігації
+
+    // Закриття по кліку на фон
+    overlay.onclick = function(e) {
+        if (e.target === overlay) overlay.remove();
     };
 
-    const nextButton = document.createElement('button');
-    nextButton.textContent = 'Next';
-    nextButton.className = 'modal-nav-button';
-    nextButton.onclick = (e) => {
-        e.stopPropagation(); // Запобігаємо закриттю модального вікна
-        currentIndex = (currentIndex + 1) % images.length; // Перехід до наступного зображення
-        fullImage.src = images[currentIndex];
-    };
-
-    // Додаємо елементи до модального вікна
-    modal.appendChild(prevButton);
-    modal.appendChild(fullImage);
-    modal.appendChild(nextButton);
     overlay.appendChild(modal);
-
-    // Додаємо накладку до тіла сторінки
     document.body.appendChild(overlay);
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const commentBox = document.getElementById('comment-box');
+    if (commentBox) {
+        commentBox.addEventListener('focus', function() {
+            this.placeholder = '';
+        });
+        commentBox.addEventListener('blur', function() {
+            if (!this.value) this.placeholder = 'Comment...';
+        });
+    }
+});

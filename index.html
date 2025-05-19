@@ -8,12 +8,22 @@
     </head>
 <body>
     <h1>Car Brands</h1>
-    <div id="brands-container">
-        <!-- Buttons for car brands will be dynamically added here -->
-    </div>
-
-    <div id="models-container" style="margin-top: 20px;">
-        <!-- Models and years will be displayed here -->
+    <div id="main-container">
+        <div id="sidebar">
+            <div class="column" id="brands-column">
+                <h2>Brands</h2>
+                <div id="brands-container"></div>
+            </div>
+            <div class="column" id="models-column">
+                <h2>Models</h2>
+                <div id="models-container"></div>
+            </div>
+            <div class="column" id="years-column">
+                <h2>Years</h2>
+                <div id="years-container"></div>
+            </div>
+        </div>
+        <div id="images-container"></div>
     </div>
 
     <script src="js/script.js"></script>
