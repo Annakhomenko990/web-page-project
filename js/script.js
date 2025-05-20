@@ -97,7 +97,7 @@ function showImages(brand, model, year, carData) {
         }
 
         let currentPage = 0;
-        const imagesPerPage = 9;
+        const imagesPerPage = 15; // Було 9, стало 15
 
         function filterValidImages(imageUrls, callback) {
             const validImages = [];
